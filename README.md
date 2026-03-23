@@ -138,7 +138,38 @@ LIVENESS_TIMEOUT = 15.0       # Prevents indefinite PAM hang on camera stall
 
 ---
 
-## Testing
+## Multi-Factor Authentication Stack
+
+The liveness module was deployed as part of a three-factor authentication stack requiring no proprietary software or custom hardware beyond what is already present on the device:
+
+| Factor | Implementation | Defeats |
+|--------|---------------|---------|
+| Possession | YubiKey 5Ci FIPS (FIDO2 via pam_u2f) | Remote credential theft, password replay |
+| Presence | IR liveness detection (this module) | Photograph and screen spoofing |
+| Identity | Howdy face recognition | Identity verification |
+
+### PAM Configuration
+
+**`/etc/pam.d/sudo`** — YubiKey required first, then Howdy:
+```
+auth required pam_u2f.so cue
+@include common-auth
+```
+
+**`/etc/pam.d/common-auth`** — Howdy with liveness:
+```
+auth [success=2 default=ignore] pam_python.so /lib/security/howdy/pam.py
+```
+
+**`/etc/pam.d/gdm-password`** — same pattern for screen unlock:
+```
+auth required pam_u2f.so
+@include common-auth
+```
+
+An adversary who defeats liveness detection still cannot authenticate without the physical YubiKey. An adversary with the YubiKey but without the enrolled face is rejected by face recognition and liveness. 3D mask attacks are not addressed — blink detection is the identified mitigation path.
+
+
 
 ```bash
 # Monitor live authentication values
