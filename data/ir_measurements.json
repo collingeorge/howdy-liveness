@@ -1,0 +1,36 @@
+{
+  "hardware": {
+    "device": "Microsoft Surface Camera Front",
+    "model": "Surface Pro (2019)",
+    "camera_id": "045e:0990",
+    "resolution": "480x480",
+    "fps": 60,
+    "format": "GREY (8-bit Greyscale)"
+  },
+  "measurements": {
+    "live_face": {
+      "delta_mean": 14.1367,
+      "delta_std": 12.2484,
+      "spatial_variance": 150.0243,
+      "delta_max": 50.6182
+    },
+    "printed_photo_canvas": {
+      "delta_mean": 66.3285,
+      "delta_std": 33.3357,
+      "spatial_variance": 1111.2698,
+      "delta_max": 114.0364
+    },
+    "phone_screen": {
+      "delta_mean": 33.0607,
+      "delta_std": 52.4639,
+      "spatial_variance": 2752.4640,
+      "delta_max": 245.2909
+    }
+  },
+  "thresholds": {
+    "delta_mean_max": 40.0,
+    "spatial_variance_max": 400.0,
+    "safety_margin_print": "7x",
+    "safety_margin_screen": "18x"
+  }
+}
