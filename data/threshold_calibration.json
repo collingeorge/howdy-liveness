@@ -1,0 +1,16 @@
+{
+  "threshold_history": [
+    {"value": 400, "basis": "initial single-session derivation", "result": "too tight for PAM context — frequent false rejections"},
+    {"value": 700, "basis": "raised after PAM-context failures (observed live SV 489-508)", "result": "5/6 passing"},
+    {"value": 800, "basis": "final calibration — 10/10 PAM-context passes", "result": "stable"}
+  ],
+  "pam_context_live_face": {
+    "spatial_variance_observed": [508.05, 505.13, 489.03, 269.96, 590.57, 549.57, 222.98],
+    "max_observed": 590.57,
+    "threshold": 800,
+    "safety_margin_above_live_max": 1.35,
+    "safety_margin_below_spoof_min": 2.27,
+    "spoof_min": 1817.3
+  },
+  "note": "PAM-context spatial variance is higher than standalone measurement due to camera state when liveness runs after VideoCapture initialization in compare.py. Standalone test showed max 241.65; PAM context shows max ~590."
+}
