@@ -6,7 +6,6 @@ import os
 import glob
 import syslog
 
-# pam-python is running python 2, so we use the old module here
 import configparser as ConfigParser
 
 # Read config from disk
@@ -28,8 +27,13 @@ def doAuth(pamh):
 
 	# Abort if lid is closed
 	if config.getboolean("core", "ignore_closed_lid"):
-		if any("closed" in open(f).read() for f in glob.glob("/proc/acpi/button/lid/*/state")):
-			return pamh.PAM_AUTHINFO_UNAVAIL
+		for f in glob.glob("/proc/acpi/button/lid/*/state"):
+			try:
+				with open(f) as fh:
+					if "closed" in fh.read():
+						return pamh.PAM_AUTHINFO_UNAVAIL
+			except IOError:
+				pass
 
 	# Set up syslog
 	syslog.openlog("[HOWDY]", 0, syslog.LOG_AUTH)
@@ -41,7 +45,17 @@ def doAuth(pamh):
 	syslog.syslog(syslog.LOG_INFO, "Attempting facial authentication for user " + pamh.get_user())
 
 	# Run compare as python3 subprocess to circumvent python version and import issues
-	status = subprocess.call(["/usr/bin/python3", os.path.dirname(os.path.abspath(__file__)) + "/compare.py", pamh.get_user()])
+	# Timeout prevents indefinite PAM auth hang if compare.py stalls
+	compare_timeout = config.getint("video", "timeout", fallback=5) + 15
+	try:
+		status = subprocess.call(
+			["/usr/bin/python3", os.path.dirname(os.path.abspath(__file__)) + "/compare.py", pamh.get_user()],
+			timeout=compare_timeout
+		)
+	except subprocess.TimeoutExpired:
+		syslog.syslog(syslog.LOG_ERR, "Failure, compare.py timed out after %ds" % compare_timeout)
+		syslog.closelog()
+		return pamh.PAM_AUTH_ERR
 
 	# Status 10 means we couldn't find any face models
 	if status == 10:
@@ -77,12 +91,6 @@ def doAuth(pamh):
 		syslog.closelog()
 		pamh.conversation(pamh.Message(pamh.PAM_ERROR_MSG, "Liveness check failed"))
 		return pamh.PAM_AUTH_ERR
-	# Status 14 means liveness check failed
-	elif status == 14:
-		syslog.syslog(syslog.LOG_WARNING, "Failure, liveness check failed - spoof attempt detected")
-		syslog.closelog()
-		pamh.conversation(pamh.Message(pamh.PAM_ERROR_MSG, "Liveness check failed"))
-		return pamh.PAM_AUTH_ERR
 	# Status 0 is a successful exit
 	elif status == 0:
 		# Show the success message if it isn't suppressed
@@ -95,7 +103,7 @@ def doAuth(pamh):
 
 	# Otherwise, we can't discribe what happend but it wasn't successful
 	pamh.conversation(pamh.Message(pamh.PAM_ERROR_MSG, "Unknown error: " + str(status)))
-	syslog.syslog(syslog.LOG_INFO, "Failure, unknown error" + str(status))
+	syslog.syslog(syslog.LOG_INFO, "Failure, unknown error: " + str(status))
 	syslog.closelog()
 	return pamh.PAM_SYSTEM_ERR
 

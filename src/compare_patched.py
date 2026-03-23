@@ -12,6 +12,7 @@ timings = {
 # Import required modules
 import sys
 import os
+import re
 import json
 import configparser
 import dlib
@@ -23,7 +24,6 @@ import _thread as thread
 from recorders.video_capture import VideoCapture
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from liveness import check_liveness
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 
 def init_detector(lock):
@@ -53,11 +53,11 @@ def init_detector(lock):
 	lock.release()
 
 
-def make_snapshot(type):
+def make_snapshot(snap_type):
 	"""Generate snapshot after detection"""
 	snapshot.generate(snapframes, [
-		type + " LOGIN",
-		"Date: " + datetime.datetime.utcnow().strftime("%Y/%m/%d %H:%M:%S UTC"),
+		snap_type + " LOGIN",
+		"Date: " + datetime.datetime.now(datetime.timezone.utc).strftime("%Y/%m/%d %H:%M:%S UTC"),
 		"Scan time: " + str(round(time.time() - timings["fr"], 2)) + "s",
 		"Frames: " + str(frames) + " (" + str(round(frames / (time.time() - timings["fr"]), 2)) + "FPS)",
 		"Hostname: " + os.uname().nodename,
@@ -74,6 +74,11 @@ PATH = os.path.abspath(__file__ + "/..")
 
 # The username of the user being authenticated
 user = sys.argv[1]
+
+# Validate username to prevent path traversal (defense in depth for PAM module)
+if not re.match(r'^[a-z_][a-z0-9_-]*\$?$', user):
+	sys.exit(12)
+
 # The model file contents
 models = []
 # Encoded face models
@@ -95,7 +100,11 @@ face_encoder = None
 
 # Try to load the face model from the models folder
 try:
-	models = json.load(open(PATH + "/models/" + user + ".dat"))
+	model_path = os.path.realpath(os.path.join(PATH, "models", user + ".dat"))
+	if not model_path.startswith(os.path.realpath(os.path.join(PATH, "models")) + os.sep):
+		sys.exit(12)
+	with open(model_path) as f:
+		models = json.load(f)
 
 	for model in models:
 		encodings += model["data"]
@@ -154,16 +163,9 @@ height = video_capture.internal.get(cv2.CAP_PROP_FRAME_HEIGHT) or 1
 # Calculate the amount the image has to shrink
 scaling_factor = (max_height / height) or 1
 
-# Fetch config settings out of the loop
-timeout = config.getint("video", "timeout")
-dark_threshold = config.getfloat("video", "dark_threshold")
-end_report = config.getboolean("debug", "end_report")
-
 # Run liveness detection before face matching
 if not check_liveness(cap=video_capture.internal):
 	sys.exit(14)
-
-# Run liveness detection before face matching
 
 # Start the read loop
 frames = 0
@@ -205,12 +207,16 @@ while True:
 	# All values combined for percentage calculation
 	hist_total = np.sum(hist)
 
+	# If the image is fully black due to a bad camera read,
+	# skip to the next frame
+	if hist_total == 0:
+		black_tries += 1
+		continue
+
 	# Calculate frame darkness
 	darkness = (hist[0] / hist_total * 100)
 
-	# If the image is fully black due to a bad camera read,
-	# skip to the next frame
-	if (hist_total == 0) or (darkness == 100):
+	if darkness == 100:
 		black_tries += 1
 		continue
 
