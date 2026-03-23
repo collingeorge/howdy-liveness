@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "Howdy Liveness Detection: Passive IR Reflectance Analysis for Anti-Spoofing in Linux PAM Facial Authentication"
+authors:
+  - family-names: George
+    given-names: Collin
+    affiliation: "Center for Competitive Statecraft and Strategic Policy"
+repository-code: "https://github.com/collingeorge/howdy-liveness"
+abstract: >
+  A passive infrared reflectance analysis method for anti-spoofing liveness
+  detection in Howdy PAM-integrated facial authentication on Linux. Exploits
+  alternating IR emitter flash cycling in consumer IR cameras to discriminate
+  live skin from photo and screen-based spoofing attacks using spatial variance
+  of per-pixel IR delta maps.
+keywords:
+  - liveness detection
+  - anti-spoofing
+  - biometric authentication
+  - infrared
+  - PAM
+  - Linux
+  - facial recognition
+  - Howdy
+license: MIT
+date-released: "2026-03-23"
+version: "1.0.0"
