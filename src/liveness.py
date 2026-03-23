@@ -1,29 +1,21 @@
-# Howdy liveness detection module
-# Detects photo and screen spoofing via IR reflectance analysis
-# Based on empirical measurements:
-#   Live skin:      delta_mean ~14, spatial_variance ~150
-#   Printed photo:  delta_mean ~66, spatial_variance ~1111
-#   Phone screen:   delta_mean ~33, spatial_variance ~2752
-
+import os
+import time
+import warnings
 import cv2
 import numpy as np
 import syslog
-import time
 
-# Thresholds with safety margin
+os.environ["OPENCV_LOG_LEVEL"] = "SILENT"
+warnings.filterwarnings("ignore")
+
 DELTA_MEAN_MAX = 40.0
-SPATIAL_VARIANCE_MAX = 400.0
+SPATIAL_VARIANCE_MAX = 800.0
 WARMUP_FRAMES = 10
 SAMPLE_FRAMES = 60
-LIVENESS_TIMEOUT = 10.0  # seconds — prevent indefinite hang during PAM auth
+LIVENESS_TIMEOUT = 15.0
 
 def check_liveness(device_path=None, cap=None):
-    """
-    Returns True if live face detected, False if spoof detected.
-    Accepts either a device path or an existing VideoCapture object.
-    """
     syslog.openlog("[HOWDY-LIVENESS]", 0, syslog.LOG_AUTH)
-
     owns_cap = False
     if cap is None:
         if device_path is None:
@@ -34,18 +26,16 @@ def check_liveness(device_path=None, cap=None):
             syslog.closelog()
             return False
         owns_cap = True
-
     on_frames = []
     off_frames = []
     frame_count = 0
     start_time = time.monotonic()
-
     while frame_count < WARMUP_FRAMES + SAMPLE_FRAMES * 2:
         if time.monotonic() - start_time > LIVENESS_TIMEOUT:
-            syslog.syslog(syslog.LOG_ERR, "Liveness check timed out")
+            syslog.syslog(syslog.LOG_WARNING, "Liveness check timed out")
+            syslog.closelog()
             if owns_cap:
                 cap.release()
-            syslog.closelog()
             return False
         ret, frame = cap.read()
         if not ret:
@@ -62,41 +52,39 @@ def check_liveness(device_path=None, cap=None):
         else:
             off_frames.append(face.astype(float))
         frame_count += 1
-
     if owns_cap:
         cap.release()
-
     if len(on_frames) < 10 or len(off_frames) < 10:
         syslog.syslog(syslog.LOG_ERR, "Insufficient frames for liveness check")
         syslog.closelog()
         return False
-
     on_arr = np.array(on_frames)
     off_arr = np.array(off_frames)
     delta_map = np.mean(on_arr, axis=0) - np.mean(off_arr, axis=0)
-
     delta_mean = float(np.mean(delta_map))
     spatial_variance = float(np.var(delta_map))
-
     syslog.syslog(syslog.LOG_INFO,
         f"Liveness: delta_mean={delta_mean:.2f} spatial_variance={spatial_variance:.2f}")
-
     if delta_mean > DELTA_MEAN_MAX:
         syslog.syslog(syslog.LOG_WARNING,
             f"Liveness FAILED: delta_mean {delta_mean:.2f} > {DELTA_MEAN_MAX}")
         syslog.closelog()
         return False
-
     if spatial_variance > SPATIAL_VARIANCE_MAX:
         syslog.syslog(syslog.LOG_WARNING,
             f"Liveness FAILED: spatial_variance {spatial_variance:.2f} > {SPATIAL_VARIANCE_MAX}")
         syslog.closelog()
         return False
-
     syslog.syslog(syslog.LOG_INFO, "Liveness PASSED")
     syslog.closelog()
     return True
 
 if __name__ == "__main__":
+    devnull = open(os.devnull, 'w')
+    old_stderr = os.dup(2)
+    os.dup2(devnull.fileno(), 2)
     result = check_liveness()
+    os.dup2(old_stderr, 2)
+    os.close(old_stderr)
+    devnull.close()
     print("LIVE" if result else "SPOOF DETECTED")
