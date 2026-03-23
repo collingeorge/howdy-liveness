@@ -24,7 +24,7 @@
       "delta_mean_max": 20.85,
       "spatial_variance_mean": 232.74,
       "spatial_variance_std": 5.51,
-      "spatial_variance_min": 225.90,
+      "spatial_variance_min": 225.9,
       "spatial_variance_max": 241.65,
       "delta_sign": "positive"
     },
@@ -53,13 +53,14 @@
       "delta_sign": "negative (high surface reflectance inverts differential)"
     }
   },
-  "discrimination": {
+  "standalone_discrimination_historical": {
     "live_face_max_spatial_variance": 241.65,
     "nearest_spoof_min_spatial_variance": 1817.3,
     "separation_ratio": 7.52,
     "threshold_spatial_variance": 400,
     "threshold_safety_margin_vs_live_max": 1.65,
     "threshold_safety_margin_vs_nearest_spoof_min": 4.54,
-    "delta_sign_discriminator": "live=positive, both_spoofs=negative"
+    "delta_sign_discriminator": "live=positive, both_spoofs=negative",
+    "note": "Based on standalone threshold 400. Deployed threshold is 800 per PAM-context calibration."
   }
 }

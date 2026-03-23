@@ -8,7 +8,7 @@ import syslog
 os.environ["OPENCV_LOG_LEVEL"] = "SILENT"
 warnings.filterwarnings("ignore")
 
-DELTA_MEAN_MAX = 40.0
+DELTA_MEAN_MIN = 0.0
 SPATIAL_VARIANCE_MAX = 800.0
 WARMUP_FRAMES = 10
 SAMPLE_FRAMES = 60
@@ -65,9 +65,9 @@ def check_liveness(device_path=None, cap=None):
     spatial_variance = float(np.var(delta_map))
     syslog.syslog(syslog.LOG_INFO,
         f"Liveness: delta_mean={delta_mean:.2f} spatial_variance={spatial_variance:.2f}")
-    if delta_mean > DELTA_MEAN_MAX:
+    if delta_mean <= DELTA_MEAN_MIN:
         syslog.syslog(syslog.LOG_WARNING,
-            f"Liveness FAILED: delta_mean {delta_mean:.2f} > {DELTA_MEAN_MAX}")
+            f"Liveness FAILED: delta_mean={delta_mean:.2f} <= {DELTA_MEAN_MIN} (negative sign indicates spoof)")
         syslog.closelog()
         return False
     if spatial_variance > SPATIAL_VARIANCE_MAX:
