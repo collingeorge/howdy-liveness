@@ -7,30 +7,59 @@
     "fps": 60,
     "format": "GREY (8-bit Greyscale)"
   },
+  "methodology": {
+    "frames_captured": 80,
+    "warmup_frames": 10,
+    "sample_frames": 70,
+    "face_region": "central 50% (h/4:3h/4, w/4:3w/4)",
+    "lighting": "indoor artificial",
+    "distance_cm": "40-60"
+  },
   "measurements": {
     "live_face": {
-      "delta_mean": 14.1367,
-      "delta_std": 12.2484,
-      "spatial_variance": 150.0243,
-      "delta_max": 50.6182
-    },
-    "printed_photo_canvas": {
-      "delta_mean": 66.3285,
-      "delta_std": 33.3357,
-      "spatial_variance": 1111.2698,
-      "delta_max": 114.0364
+      "n_sessions": 8,
+      "delta_mean_mean": 20.49,
+      "delta_mean_std": 0.17,
+      "delta_mean_min": 20.33,
+      "delta_mean_max": 20.85,
+      "spatial_variance_mean": 232.74,
+      "spatial_variance_std": 5.51,
+      "spatial_variance_min": 225.90,
+      "spatial_variance_max": 241.65,
+      "delta_sign": "positive"
     },
     "phone_screen": {
-      "delta_mean": 33.0607,
-      "delta_std": 52.4639,
-      "spatial_variance": 2752.4640,
-      "delta_max": 245.2909
+      "n_sessions": 34,
+      "delta_mean_abs_mean": 52.97,
+      "delta_mean_abs_std": 8.21,
+      "delta_mean_abs_min": 41.93,
+      "delta_mean_abs_max": 74.78,
+      "spatial_variance_mean": 2897.5,
+      "spatial_variance_std": 415.3,
+      "spatial_variance_min": 2246.4,
+      "spatial_variance_max": 4262.6,
+      "delta_sign": "negative (IR suppression by display backlight)"
+    },
+    "printed_photo_canvas": {
+      "n_sessions": 38,
+      "delta_mean_abs_mean": 81.4,
+      "delta_mean_abs_std": 12.3,
+      "delta_mean_abs_min": 64.5,
+      "delta_mean_abs_max": 111.0,
+      "spatial_variance_mean": 2793.5,
+      "spatial_variance_std": 385.2,
+      "spatial_variance_min": 1817.3,
+      "spatial_variance_max": 3458.6,
+      "delta_sign": "negative (high surface reflectance inverts differential)"
     }
   },
-  "thresholds": {
-    "delta_mean_max": 40.0,
-    "spatial_variance_max": 400.0,
-    "safety_margin_print": "7x",
-    "safety_margin_screen": "18x"
+  "discrimination": {
+    "live_face_max_spatial_variance": 241.65,
+    "nearest_spoof_min_spatial_variance": 1817.3,
+    "separation_ratio": 7.52,
+    "threshold_spatial_variance": 400,
+    "threshold_safety_margin_vs_live_max": 1.65,
+    "threshold_safety_margin_vs_nearest_spoof_min": 4.54,
+    "delta_sign_discriminator": "live=positive, both_spoofs=negative"
   }
 }
