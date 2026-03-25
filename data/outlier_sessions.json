@@ -1,6 +1,6 @@
 {
   "outlier_sessions": {
-    "description": "Four sessions excluded from Table 1. Exclusion criterion is magnitude-based and independent of sign result.",
+    "description": "Four sessions excluded from Table 1 statistics. Excluded on basis of anomalous delta mean magnitude relative to trial block mean (>3 SD below block mean in absolute value), confirmed by positioning inspection. Exclusion criterion is magnitude-based and independent of sign result.",
     "exclusion_criterion": "Absolute delta mean magnitude more than 3 SD below trial block mean, confirmed by post-session positioning review. Trial block defined as contiguous run of 5 sessions with same material in single sitting.",
     "sessions": [
       {
@@ -9,48 +9,37 @@
         "spatial_variance": 516.4284,
         "delta_sign": "positive",
         "exclusion_reason": "Photograph partially outside detection region. 6.1 SD below block mean in absolute magnitude.",
-        "threshold_analysis": "At deployed threshold 800: SV (516.43) < 800 and sign positive \u2014 session would be classified LIVE. Exclusion valid on positioning grounds independently of threshold."
+        "threshold_analysis": "At deployed threshold of 800: spatial_variance (516.43) < 800 — SV criterion passes. Delta sign also passes (+11.69 > 0). Session would be classified LIVE at threshold 800. Exclusion is valid on positioning grounds independently of threshold analysis."
       },
       {
         "material": "printed_photo_canvas",
         "delta_mean": -103.0367,
         "spatial_variance": 2186.4439,
         "delta_sign": "negative",
-        "exclusion_reason": "Anomalous SV drop mid-block. Photograph shifted position.",
-        "threshold_analysis": "At threshold 800: SV (2186) > 800 \u2014 correctly rejected."
+        "exclusion_reason": "Anomalous spatial variance drop mid-block. Photograph shifted position.",
+        "threshold_analysis": "At threshold 800: SV (2186) > 800 — correctly rejected."
       },
       {
         "material": "printed_photo_canvas",
         "delta_mean": -109.7964,
         "spatial_variance": 1942.7704,
         "delta_sign": "negative",
-        "exclusion_reason": "Same block shift.",
-        "threshold_analysis": "At threshold 800: SV (1942) > 800 \u2014 correctly rejected."
+        "exclusion_reason": "Same block shift. Spatial variance anomalously low.",
+        "threshold_analysis": "At threshold 800: SV (1942) > 800 — correctly rejected."
       },
       {
         "material": "phone_screen",
         "delta_mean": 48.8427,
         "spatial_variance": 2839.4334,
         "delta_sign": "positive",
-        "exclusion_reason": "First run; screen not yet in position.",
-        "threshold_analysis": "At threshold 800: SV (2839) > 800 \u2014 correctly rejected by SV criterion despite positive sign."
+        "exclusion_reason": "First run of first block; screen not yet in position at capture start.",
+        "threshold_analysis": "At threshold 800: SV (2839) > 800 — correctly rejected by SV criterion despite positive sign."
       }
     ]
   },
   "warmup_characterization": {
-    "live_face_2frame": {
-      "delta_mean": 31.6543,
-      "spatial_variance": 483.6748,
-      "sv_result_at_800": "PASS (483 < 800)",
-      "combined": "PASS"
-    },
-    "printed_photo_2frame": {
-      "delta_mean": 143.6916,
-      "spatial_variance": 1862.9742,
-      "sign_result": "FAIL (positive - AGC artifact)",
-      "sv_result_at_800": "FAIL (1862 > 800)",
-      "combined": "FAIL (correct rejection)"
-    },
-    "conclusion": "At threshold 800, insufficient warmup does not produce false acceptance."
+    "live_face_2frame": {"delta_mean": 31.6543, "spatial_variance": 483.6748, "sign_result": "PASS (positive)", "sv_result_at_800": "PASS (483 < 800)", "combined": "PASS"},
+    "printed_photo_2frame": {"delta_mean": 143.6916, "spatial_variance": 1862.9742, "sign_result": "FAIL (positive — AGC artifact)", "sv_result_at_800": "FAIL (1862 > 800)", "combined": "FAIL (correct rejection)"},
+    "conclusion": "At threshold 800, insufficient warmup does not produce false acceptance. Live face passes both criteria at 2-frame warmup; printed photo fails SV criterion despite positive sign."
   }
 }
